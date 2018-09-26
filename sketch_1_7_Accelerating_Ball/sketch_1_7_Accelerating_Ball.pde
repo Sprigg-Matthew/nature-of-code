@@ -1,14 +1,22 @@
 class Ball {
-  PVector location;
-  PVector velocity;
-  
+  // Movement
+  PVector location, velocity, acceleration;
+  float topspeed;  
+    
+  // Color & Color Change 
   int    r,  g,  b;
   float tr, tg, tb;
+  int timer; // Update once a cycle.
     
-  Ball(PVector loc, PVector vel) {
-    location = new PVector(random(width), random(height));
-    velocity = new PVector(random(-2, 2), random(-2, 2) );
-        
+  Ball() {
+    location = new PVector(random(width), 0);
+    velocity = new PVector(1,0);
+    acceleration = new PVector(0.001, 0.05);
+    
+    topspeed = 10; // Limit velocity to magnitude 10.
+    
+    timer = 0;
+    
     tr = 0;
     tg = 5000.555;
     tb = tg*tg;
@@ -19,6 +27,12 @@ class Ball {
     noStroke();
     fill(color(r, g, b));
     ellipse(location.x, location.y, 16,16);
+    
+    // Change color every five seconds.
+    if (timer == 150) {
+      this.colorChange();
+      timer = 0;
+    }
     
   }
   void colorChange() {
@@ -32,7 +46,8 @@ class Ball {
     
   }
   void move() {
-    
+    velocity.add(acceleration);
+    velocity.limit(topspeed);
     location.add(velocity);
     
     if ((location.x > width)  || (location.x < 0 )) {
@@ -51,7 +66,7 @@ Ball ball;
 void setup() {
   size(1020, 720);
   background(255);
-  ball = new Ball(new PVector(0,0), new PVector(5,10));
+  ball = new Ball();
 }
 
 void draw() {
@@ -59,3 +74,14 @@ void draw() {
   ball.move();
   //println(ball.location);
 }
+
+/*
+void keyPressed(){
+  if (key == UP){
+    PVector 
+    ball.acceleration.add();
+  } else if (key == DOWN) {
+    ball.acceleration.mult(-1.01);
+  }
+}
+*/
