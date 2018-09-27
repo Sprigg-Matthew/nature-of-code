@@ -1,24 +1,36 @@
 import java.util.Random;
 
-Ball ball;
+Mover[] movers = new Mover[20];
+
 boolean rec;
 
 void setup() {
   size(640, 480);
   background(255);
-  ball = new Ball();
-  record = false;
+  rec = false;
+  for (int i = 0; i < movers.length; i++){
+    movers[i] = new Mover();
+  }
 }
 
 void draw() {
+    //background(255);
     if (rec) {
       saveFrame("frames/####.tif");  
     }
-    ball.update();
+    for (int i = 0; i < movers.length; i++) {
+      movers[i].update();
+    }
     
 }
 
-class Ball {
+void keyPressed() {
+  if (key == 's' || key == 'S') {
+    rec = !rec;
+  }
+}
+
+class Mover {
   // Movement
   PVector location, velocity, acceleration;
   float topspeed;  
@@ -31,11 +43,11 @@ class Ball {
   Paint brush;
     
     
-  Ball() {
+  Mover() {
     location = new PVector(random(width), 0);
     velocity = new PVector(1,0);
-    acceleration = new PVector(0.001, 0.05);
-    
+    acceleration = new PVector(0,0);
+    acceleration = PVector.random2D();
     topspeed = 10; // Limit velocity to magnitude 10.
     
     timer = 0;
@@ -46,18 +58,10 @@ class Ball {
     
     this.colorChange();
     
-    brush = new Paint(r, g, b, 140);
+    brush = new Paint(r, g, b, 190);
   }
-  void display() {
-    brush.splatter(
-      int(location.x),
-      int(location.y)
-      );
-    // Change color every 0.1 seconds.
-        
-  }
-  void update() {
-    acceleration = PVector.random2D();
+  
+  void update() { 
     this.display();
     this.move();
   
@@ -65,24 +69,26 @@ class Ball {
       this.colorChange();
       brush.setColor(r, g, b, 140);
       brush.setSplatter(
-        int(map(noise(tr*tg), 0, 1, 5, 100)),
+        int(map(noise(tr*tg), 0, 1, 1, 100)),
         int(map(noise(tg*tb), 0, 1, 10, 150))
       );
       timer = 0;
     }
     timer++;
   }
-  void colorChange() {
-    r = int(map(noise(tr), 0, 1, 0, 255));
-    g = int(map(noise(tg), 0, 1, 0, 255));
-    b = int(map(noise(tb), 0, 1, 0, 255));
-    
-    tr+=0.1;
-    tg+=0.1;
-    tb+=0.1;
-    
-  }
+  
   void move() {
+    //PVector mouse = new PVector(mouseX, mouseY);
+    //PVector dir   = PVector.sub(mouse, location);
+    //float mag = dir.mag();
+    
+    
+    //dir.normalize();
+    //dir.mult(0.5);
+    //acceleration = dir.limit(10);
+    
+  acceleration = PVector.random2D();
+    
     velocity.add(acceleration);
     velocity.limit(topspeed);
     location.add(velocity);
@@ -96,13 +102,31 @@ class Ball {
       this.colorChange();
     }
   }
+
+  
+  void display() {
+    brush.splatter(
+      int(location.x),
+      int(location.y)
+      );
+    // Change color every 0.1 seconds.
+        
+  }
+  
+  void colorChange() {
+    r = int(map(noise(tr), 0, 1, 0, 255));
+    g = int(map(noise(tg), 0, 1, 0, 255));
+    b = int(map(noise(tb), 0, 1, 0, 255));
+    
+    tr+=0.1;
+    tg+=0.1;
+    tb+=0.1;
+    
+  }
 }
 
 class Paint {
-  int r; // Red
-  int g; // Green
-  int b; // Blue
-  int t; // Transparency
+  int r,g,b,t; // red, green, blue, transparency.
   
   int d; // Diameter
   int n; // Number of splatter marks.
@@ -148,11 +172,5 @@ class Paint {
         5
       );
     }
-  }
-}
-
-void keyPressed() {
-  if (key == 's' || key == 'S') {
-    rec = !rec;
   }
 }
