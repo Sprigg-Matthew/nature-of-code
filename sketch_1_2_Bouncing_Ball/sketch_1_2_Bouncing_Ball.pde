@@ -50,6 +50,7 @@ Ball ball;
 
 void setup() {
   size(1020, 720);
+  frameRate(120);
   background(255);
   ball = new Ball(new PVector(0,0), new PVector(5,10));
 }

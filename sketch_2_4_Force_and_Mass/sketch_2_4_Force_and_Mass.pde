@@ -1,69 +1,66 @@
 import java.util.Random;
+Mover[] movers = new Mover[10];
 
-Mover[] movers = new Mover[30];
-boolean trail = false;
+PVector helium, wind;
+float dwindx, dwindy;
+int timer;
 
-void setup() {
+void setup(){
   size(1020, 720);
   background(255);
-  for (int i = 0; i<movers.length; i++){
-    movers[i] = new Mover();
+  for (int i = 0; i < movers.length; i++){
+    movers[i] = new Mover(); 
   }
+  helium = new PVector(0, -0.001);  // Helium
+  wind   = new PVector(0,  0  );  // Wind
 }
 
-void draw() {
-  if (!trail)
-    background(255);
-  for (int i = 0; i<movers.length; i++){
-    movers[i].update();
+void draw(){
+  background(255);
+  if (timer == 15){ // Change Direction of Wind
+      wind = new PVector(
+        map(noise(dwindx), 0, 1, -0.01,  0.01),
+        map(noise(dwindy), 0, 1, -0.001,  0.001)
+      );
+      dwindx+=0.001;
+      dwindy+=0.001;
+      timer=0;
   }
-}
-
-void keyPressed(){
-  trail = !trail;
-}
-
-void mousePressed(){
-   for (int i = 0; i<movers.length; i++){
-     movers[i].mouseBait = true;
+   else {
+     timer++;
    }
-}
-
-void mouseReleased(){
-    for (int i = 0; i<movers.length; i++){
-     movers[i].mouseBait = false;
-   }
-}
-
-/*
------------------------------------------------------------------------
-|                                                                     |
-| SPLATTER CREATURE                                                   |
-|                                                                     |
------------------------------------------------------------------------
-*/
-
-// BEHAVIOR
-class Mover {
-  // Movement
-  PVector location, velocity, acceleration;
-  float topspeed;  
-  int timer; // Update once a cyc;le.
   
-  boolean mouseBait;
+  // Apply Forces
+  for (int i = 0; i < movers.length; i++){
+    movers[i].applyForce(wind);
+    movers[i].applyForce(helium);
+    movers[i].update();
+    }
+    println(wind);
+  }
+
+
+public class Mover {
+  // Movement
+  PVector location, velocity, acceleration;  
+  
+  float mass;
+  
+  int timer; // Update once a cycle.
+  
+  //boolean mouseBait;
   
   Splatter brush;
-    
-    
+  
   Mover() {
-    location = new PVector(random(width), 0);
-    velocity = new PVector(1,0);
+    location = new PVector(random(width), random(height));
+    velocity = new PVector(0,1);
     acceleration = new PVector(0,0);
-    acceleration = PVector.random2D();
-    topspeed = 10; // Limit velocity to magnitude 10.
+    mass = 0.05;
     
     timer = 0;  
-    mouseBait = false;
+    
+    //mouseBait = false;
     brush = new Splatter();
     
     brush.setColor(
@@ -71,10 +68,11 @@ class Mover {
       int(random(255)),
       int(random(255)),
       255
-      );
+      );   
   }
   
   void update() { 
+    
     this.display();
     this.move();
   
@@ -85,29 +83,23 @@ class Mover {
     else
       timer++;
   }
-  
+  void applyForce(PVector force){
+    // a = f/m
+    // Copy of vector used b/c Java ref 
+    // would affect original.
+       
+       PVector f = PVector.div(force, mass);
+    // Force acts upon acceleration.
+       acceleration.add(f);
+  }
+
   void move() {
-    
-    if (mouseBait)
-      this.moveTowardsMouse();
-    else
-      acceleration = PVector.random2D();
-    
-    velocity.add(acceleration);
-    velocity.limit(topspeed);
+    velocity.add(acceleration);   
     location.add(velocity);
+    acceleration.mult(0);
     this.checkEdges();
-  }
-  void moveTowardsMouse(){
-    PVector mouse = new PVector(mouseX, mouseY);
-    PVector dir   = PVector.sub(mouse, location);
-    float mag = dir.mag();
-    
-    dir.normalize();
-    dir.mult(0.5);
-    dir.limit(10);
-    acceleration = dir; 
-  }
+  } 
+  
   void checkEdges(){
     if ((location.x >= width)  || (location.x <= 0 )) {
       velocity.x *= -1;
@@ -118,19 +110,16 @@ class Mover {
       brush.changeAll();
     }
   }
-
-  
   void display() {
     brush.splatter(
       int(location.x),
       int(location.y)
       );
-    // Change color every 0.1 seconds.     
   }
 }
 
-// GRAPHICS
-class Splatter {
+
+public class Splatter {
   int    r,  g,  b,  t; // red, green, blue, transparency.
   float tr, tg, tb, tt; // rate of transition for each variable.
     
