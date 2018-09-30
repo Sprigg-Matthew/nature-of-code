@@ -1,3 +1,5 @@
+import java.util.Random;
+
 class Splatter {
   int    r,  g,  b,  t; // red, green, blue, transparency.
   float tr, tg, tb, tt; // rate of transition for each variable.
